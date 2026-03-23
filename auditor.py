@@ -811,6 +811,10 @@ def main():
         help="Limit number of probes (default: all)"
     )
     parser.add_argument(
+        "--probe-id", type=str, default=None,
+        help="Run only specific probe(s), comma-separated (e.g. EXP07_sycophancy)"
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Print probe schedule without making API calls"
     )
@@ -821,7 +825,13 @@ def main():
         return
 
     probes = build_probe_library()
-    if args.probes:
+    if args.probe_id:
+        ids = [x.strip() for x in args.probe_id.split(",")]
+        probes = [p for p in probes if any(pid in p.probe_id for pid in ids)]
+        if not probes:
+            print(f"ERROR: No probes matched --probe-id {args.probe_id}")
+            return
+    elif args.probes:
         probes = probes[: args.probes]
 
     n_probes = len(probes)
